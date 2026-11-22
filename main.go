@@ -81,7 +81,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	// handlers
-	mux.HandleFunc("GET /{$}", postHandler.Index)
+	mux.HandleFunc("GET /{$}", postHandler.Home)
+	mux.HandleFunc("POST /postts", postHandler.CreatePost)
 	mux.HandleFunc("GET /static/htmx.min.js", ServeHTMX)
 	mux.HandleFunc("GET /static/", ServeStaticFiles)
 

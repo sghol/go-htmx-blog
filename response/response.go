@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
+	"os"
+	"io/fs"
 )
 
 type HTMLRenderer struct {
@@ -14,13 +16,18 @@ type HTMLRenderer struct {
 }
 
 func NewHTMLRenderer(dir string, logger *slog.Logger) (*HTMLRenderer, error) {
-	pages, err := filepath.Glob(filepath.Join(dir, "*.html"))
+	fsys := os.DirFS(dir)
+
+	pages, err := fs.Glob(fsys, "pages/*.html")
 	if err != nil {
 		return nil, err
 	}
+	if len(pages) == 0 {
+		return nil, fmt.Errorf("no page templates found in %s/pages", dir)
+	}
 	cache := make(map[string]*template.Template, len(pages))
 	for _, page := range pages {
-		t, err := template.ParseFiles(page)
+		t, err := template.ParseFS(fsys, "layout/*.html", "partials/*.html", page)
 		if err != nil {
 			return nil, err
 		}
@@ -36,7 +43,7 @@ func (r *HTMLRenderer) RenderHTML(w http.ResponseWriter, name string, data any) 
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := t.Execute(w, data); err != nil {
+	if err := t.ExecuteTemplate(w, "base", data); err != nil {
 		r.logger.Error("template execute", "template", name, "error", err)
 	}
 }

@@ -7,7 +7,42 @@ package db
 
 import (
 	"context"
+	"time"
 )
+
+const createPost = `-- name: CreatePost :one
+INSERT INTO posts (title, body, is_published, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?)  
+RETURNING id, title, body, is_published, created_at, updated_at
+`
+
+type CreatePostParams struct {
+	Title       string
+	Body        string
+	IsPublished bool
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
+	row := q.db.QueryRowContext(ctx, createPost,
+		arg.Title,
+		arg.Body,
+		arg.IsPublished,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i Post
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Body,
+		&i.IsPublished,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
 
 const listPosts = `-- name: ListPosts :many
 
