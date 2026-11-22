@@ -8,13 +8,23 @@
     <script src="/static/htmx.min.js" defer></script>
   </head>
   <body>
-    <div class="container">
-      <input id="task-title" placeholder="عنوان تسک" />
-      <ul class="task-list">
-        {{ range .}}
-          <li class="task-item"><input type="checkbox">{{ .Title }}</li>
-        {{ end }}
-      </ul>
+    <div class="app">
+      <header class="navbar">
+        <h1 class="brand">سعید غلامی</h1>
+        <nav class="nav-items">
+          <a href="#">نوشته ها</a>
+          <a href="#">درباره</a>
+          <a href="#">پروژه ها</a>
+        </nav>
+      </header>
+      <main class="main">
+        <ul class="post-list">
+          {{ range . }}
+          <li class="post"><a href="#">{{ .Title }}</a></li>
+          {{ end }}
+        </ul>
+      </main>
+      <footer>footer</footer>
     </div>
   </body>
 </html>

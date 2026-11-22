@@ -1,25 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	"html/template"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	_ "modernc.org/sqlite"
+	// "github.com/sghol/go-htmx-blog/db"
+	"github.com/sghol/go-htmx-blog/internal/post"
 )
-
-type Post struct {
-	ID          int
-	Title       string
-	Status      string
-	Body        string
-	IsPublished bool
-}
-
-var posts = []Post{
-	{ID: 1, Title: "Web programin with go lang", Body: "body of the post", IsPublished: true},
-	{ID: 1, Title: "Python Django", Body: "second post", IsPublished: true},
-}
 
 // renderTemplate render template with data
 func renderTemplate(w http.ResponseWriter, t *template.Template, data any) {
@@ -46,10 +37,7 @@ func ServeStaticFiles(w http.ResponseWriter, r *http.Request) {
 
 // setup a logger
 func setupLogger() *slog.Logger {
-	var handler slog.Handler
-	handler = slog.NewTextHandler(os.Stderr, nil)
-
-	logger := slog.New(handler)
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	slog.SetDefault(logger)
 	return logger
 }
@@ -62,24 +50,41 @@ func requestLogger(next http.Handler) http.HandlerFunc {
 	}
 }
 
-// Index home page
-// handles GET /
-func Index(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
+func OpenDB(DBName string) (*sql.DB, error) {
+	sqlDB, err := sql.Open("sqlite", DBName)
+	if err != nil {
+		return nil, err
 	}
-	t := template.Must(template.ParseFiles("templates/index.html"))
-	renderTemplate(w, t, posts)
+	if err := sqlDB.Ping(); err != nil {
+		sqlDB.Close()
+		return nil, err
+	}
+	return sqlDB, nil
 }
 
-
 func main() {
+	// setup logger
+	logger := setupLogger()
+
+	// get blog db
+	blogDB, err := OpenDB("blog.db")
+	if err != nil {
+		logger.Error("database error", "error", err)
+		os.Exit(1)
+	}
+
 	// requests multiplexer aka url router
 	mux := http.NewServeMux()
 
+	// queries := db.New(blogDB)
+
+	// post package
+	postSvc := post.NewService(blogDB)
+	postHandler := post.NewHandler(postSvc, logger)
+
+
 	// handlers
-	mux.HandleFunc("GET /", Index)
+	mux.HandleFunc("GET /{$}", postHandler.Index)
 	mux.HandleFunc("GET /static/htmx.min.js", ServeHTMX)
 	mux.HandleFunc("GET /static/", ServeStaticFiles)
 
