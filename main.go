@@ -2,24 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"html/template"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
-	_ "modernc.org/sqlite"
-	// "github.com/sghol/go-htmx-blog/db"
-	"github.com/sghol/go-htmx-blog/internal/post"
-)
 
-// renderTemplate render template with data
-func renderTemplate(w http.ResponseWriter, t *template.Template, data any) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := t.Execute(w, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
+	_ "modernc.org/sqlite"
+
+	"github.com/sghol/go-htmx-blog/post"
+	"github.com/sghol/go-htmx-blog/response"
+)
 
 // Serve htmx to the browser with correct header metadata
 // handles /static/htmx.min.js
@@ -73,15 +65,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// requests multiplexer aka url router
-	mux := http.NewServeMux()
-
-	// queries := db.New(blogDB)
+	// renderer : html renderer
+	renderer, err := response.NewHTMLRenderer("templates", logger)
+	if err != nil {
+		logger.Error("parse template", "error", err)
+		os.Exit(1)
+	}
 
 	// post package
 	postSvc := post.NewService(blogDB)
-	postHandler := post.NewHandler(postSvc, logger)
+	postLogger := slog.Default().With("module", "post")
+	postHandler := post.NewHandler(postSvc, postLogger, renderer)
 
+	// requests multiplexer aka url router
+	mux := http.NewServeMux()
 
 	// handlers
 	mux.HandleFunc("GET /{$}", postHandler.Index)
