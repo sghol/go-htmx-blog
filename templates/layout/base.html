@@ -6,15 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ block "title" . }}my personal blog{{ end }}</title>
     <link rel="stylesheet" href="/static/style.css" />
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <script src="/static/htmx.min.js" defer></script>
+    <script src="/static/script.js" defer></script>
   </head>
   <body>
     <div class="app">
-      {{ template "navbar" . }}
+      {{ template "navbar" }}
       <main class="main">
         {{ template "content" . }}
       </main>
-      <footer>footer</footer>
+      {{ template "footer" }}
     </div>
   </body>
 </html>
