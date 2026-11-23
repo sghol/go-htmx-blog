@@ -1,0 +1,18 @@
+{{ define "title" }}پست جدید{{ end }}
+{{ define "content" }}
+<form class="post-form" method="POST" action="/posts">
+  <div class="form-field">
+    <label for="title">عنوان</label>
+    <input id="title" name="title" class="input" placeholder="عنوان پست" autofocus>
+  </div>
+  <div class="form-field">
+    <label>محتوای پست</label>
+    <textarea id="body" name="body" class="textarea" rows="15"></textarea>
+  </div>
+  <label for="is-published">
+    <input type="checkbox" id="is-published" name="is_published" class="checkbox">
+    منتشر شود
+  </label>
+  <button type="submit" class="button">ایجاد پست</button>
+</form>
+{{ end }}

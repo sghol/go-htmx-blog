@@ -59,7 +59,7 @@ func main() {
 	logger := setupLogger()
 
 	// get blog db
-	blogDB, err := OpenDB("blog.db")
+	blogDB, err := OpenDB("blog.db?_time_format=sqlite")
 	if err != nil {
 		logger.Error("database error", "error", err)
 		os.Exit(1)
@@ -82,7 +82,8 @@ func main() {
 
 	// handlers
 	mux.HandleFunc("GET /{$}", postHandler.Home)
-	mux.HandleFunc("POST /postts", postHandler.CreatePost)
+	mux.HandleFunc("GET /posts", postHandler.RenderCreatePostForm)
+	mux.HandleFunc("POST /posts", postHandler.CreatePost)
 	mux.HandleFunc("GET /static/htmx.min.js", ServeHTMX)
 	mux.HandleFunc("GET /static/", ServeStaticFiles)
 

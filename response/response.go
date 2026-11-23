@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 	"os"
 	"io/fs"
+	"time"
+
+	"github.com/jalaali/go-jalaali"
 )
 
 type HTMLRenderer struct {
@@ -27,7 +30,7 @@ func NewHTMLRenderer(dir string, logger *slog.Logger) (*HTMLRenderer, error) {
 	}
 	cache := make(map[string]*template.Template, len(pages))
 	for _, page := range pages {
-		t, err := template.ParseFS(fsys, "layout/*.html", "partials/*.html", page)
+		t, err := template.New("").Funcs(Funcs).ParseFS(fsys, "layout/*.html", "partials/*.html", page)
 		if err != nil {
 			return nil, err
 		}
@@ -52,4 +55,22 @@ func (r *HTMLRenderer) RenderHTML(w http.ResponseWriter, name string, data any) 
 func (rs *HTMLRenderer) ServerError(w http.ResponseWriter, err error) {
 	rs.logger.Error("server error", "error", err)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+}
+
+
+// to jalali 
+var tehran, _ = time.LoadLocation("Asia/Tehran") // load once
+
+var Funcs = template.FuncMap{
+	"toJalali": toJalali,
+}
+
+func toJalali(t time.Time, layout string) (string, error) {
+	if t.IsZero() {
+		return "", nil
+	}
+	if tehran != nil {
+		t = t.In(tehran)
+	}
+	return jalaali.From(t).JFormat(layout)
 }

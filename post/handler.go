@@ -29,6 +29,10 @@ func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreatePost handles creating new post by POST /posts
+func (h *Handler) RenderCreatePostForm(w http.ResponseWriter, r *http.Request) {
+	h.resp.RenderHTML(w, "post_create.html", nil)
+}
+
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	_, err := h.svc.CreatePost(r.Context(), CreatePostInput{
 		Title:       strings.TrimSpace(r.FormValue("title")),
@@ -40,6 +44,4 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		h.logger.Error("Create new post", "error", err)
 		return
 	}
-
-	http.Redirect(w, r, "/", 200)
 }

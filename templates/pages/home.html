@@ -1,7 +1,11 @@
 {{ define "title" }}Blog posts{{ end }}
 {{ define "content" }}
 <ul class="post-list">
-  <h1> posts list</h1>
-  {{ . }}
+  {{ range . }}
+  <li class="post">
+    <span class="post-date">{{ toJalali .CreatedAt "2006/01/02" }}</span>
+    <a href="#">{{ .Title }}</a>
+  </li>
+  {{ end }}
 </ul>
 {{ end }}
